@@ -19,6 +19,9 @@ from .cil_head import RegressionHead
 from .td3_v_head import TD3VHead
 from .ddpg_v_head import DDPGVHead
 from .wolpertinger_actor_head import WolpertingerActorHead
+# Custom
+from .conservative_quantile_regression_q_head import ConservativeQuantileRegressionQHead
+from .conservative_q_head import ConservativeQHead
 
 __all__ = [
     'CategoricalQHead',
@@ -42,4 +45,7 @@ __all__ = [
     'TD3VHead',
     'DDPGVHead',
     'WolpertingerActorHead'
+    # Custom
+    'ConservativeQuantileRegressionQHead'
+    'ConservativeQHead'
 ]

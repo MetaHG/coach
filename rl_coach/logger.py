@@ -24,6 +24,8 @@ import uuid
 from subprocess import Popen, PIPE
 from typing import Union
 
+import numpy as np
+
 from PIL import Image
 from pandas import DataFrame
 from six.moves import input
@@ -197,6 +199,12 @@ class BaseLogger(object):
             time = self.time
         # create only if it doesn't already exist
         if overwrite or not self.signal_value_exists(time, signal_name):
+            ### TODO REMOVE ################################################################################################################################################
+            if not self.signal_value_exists(time, signal_name):
+                self.data.loc[time, signal_name] = np.nan
+                self.data[signal_name] = self.data[signal_name].astype(object)
+            ################################################################################################################################################################
+
             self.data.loc[time, signal_name] = value
             return True
         return False
