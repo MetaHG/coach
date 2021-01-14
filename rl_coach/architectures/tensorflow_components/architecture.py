@@ -27,6 +27,7 @@ from rl_coach.core_types import GradientClippingMethod
 from rl_coach.saver import SaverCollection
 from rl_coach.spaces import SpacesDefinition
 from rl_coach.utils import force_list, squeeze_list, start_shell_command_and_wait
+from rl_coach.logger import screen
 
 
 def variable_summaries(var):
@@ -121,6 +122,23 @@ class TensorFlowArchitecture(Architecture):
 
             # gradients ops
             self._create_gradient_ops()
+
+            # print(self.tensor_gradients)
+            # print(self.gradients_wrt_inputs)
+            # print(self.gradients_weights_ph)
+            # print(self.weighted_gradients)
+
+            # tensorboard summaries for gradients ############################################################################ CUSTOM TENSORBOARD
+            if self.ap.visualization.tensorboard:
+                for idx, var in enumerate(self.tensor_gradients): # /gradients/
+                    variable_summaries(var)
+                for idx, var in enumerate(self.gradients_wrt_inputs[0]['observation']): # /gradients_1/.../truediv_grad
+                    variable_summaries(var)
+                # ERROR WITH TENSOR BELOW: You must feed a value for placeholder tensor gradient_weights_ph ...
+                #for idx, var in enumerate(self.gradients_weights_ph): # /output_gradient_weights:0/
+                #    variable_summaries(var)
+                #for idx, var in enumerate(self.weighted_gradients[0]): # /gradients_2/
+                #    variable_summaries(var)
 
             self.inc_step = self.global_step.assign_add(1)
 
@@ -368,6 +386,8 @@ class TensorFlowArchitecture(Architecture):
 
             # extract the fetches
             norm_unclipped_grads, grads, total_loss, losses = result[:4]
+            # print(norm_unclipped_grads, len(grads), [x.shape for x in grads]) ############ TODO: REMOVE
+
             if self.middleware.__class__.__name__ == 'LSTMMiddleware':
                 (self.curr_rnn_c_in, self.curr_rnn_h_in) = result[4]
             fetched_tensors = []
