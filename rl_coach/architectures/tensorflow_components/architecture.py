@@ -45,6 +45,22 @@ def variable_summaries(var):
             tf.summary.scalar('min', tf.reduce_min(var))
             tf.summary.histogram('histogram', var)
 
+            
+def gradient_summaries(var):
+    """Attach a lot of summaries to a Tensor (for TensorBoard visualization)."""
+    with tf.name_scope('summaries'):
+        layer_weight_name = '_'.join(var.name.split('/')[-4:])[:-2]
+        
+        with tf.name_scope(layer_weight_name):
+            mean = tf.reduce_mean(var)
+            tf.summary.scalar('mean', mean)
+            with tf.name_scope('stddev'):
+                stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+            tf.summary.scalar('stddev', stddev)
+            tf.summary.scalar('max', tf.reduce_max(var))
+            tf.summary.scalar('min', tf.reduce_min(var))
+            tf.summary.histogram('histogram', var)
+
 
 def local_getter(getter, name, *args, **kwargs):
     """
@@ -131,9 +147,9 @@ class TensorFlowArchitecture(Architecture):
             # tensorboard summaries for gradients ############################################################################ CUSTOM TENSORBOARD
             if self.ap.visualization.tensorboard:
                 for idx, var in enumerate(self.tensor_gradients): # /gradients/
-                    variable_summaries(var)
+                    gradient_summaries(var)
                 for idx, var in enumerate(self.gradients_wrt_inputs[0]['observation']): # /gradients_1/.../truediv_grad
-                    variable_summaries(var)
+                    gradient_summaries(var)
                 # ERROR WITH TENSOR BELOW: You must feed a value for placeholder tensor gradient_weights_ph ...
                 #for idx, var in enumerate(self.gradients_weights_ph): # /output_gradient_weights:0/
                 #    variable_summaries(var)
@@ -223,6 +239,9 @@ class TensorFlowArchitecture(Architecture):
         # gradients of the outputs w.r.t. the inputs
         self.gradients_wrt_inputs = [{name: tf.gradients(output, input_ph) for name, input_ph in
                                       self.inputs.items()} for output in self.outputs]
+        #print("Inputs: ", self.inputs)
+        #print("Outputs: ", self.outputs)
+        #print('Weights: ', self.weights)
         self.gradients_weights_ph = [tf.placeholder('float32', self.outputs[i].shape, 'output_gradient_weights')
                                      for i in range(len(self.outputs))]
         self.weighted_gradients = []
